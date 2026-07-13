@@ -2,6 +2,7 @@ from sys import float_info
 from typing import Any
 from nodes import MAX_RESOLUTION
 import torch
+import comfy.model_management
 
 import numpy as np
 from PIL import Image, ImageDraw
@@ -355,4 +356,50 @@ class RandomShapeGenerator:
         fg_rgb_str = f"RGB({fg_rgb[0]}, {fg_rgb[1]}, {fg_rgb[2]}) / {fg_hex}"
 
         return (img_tensor, bg_rgb_str, fg_rgb_str)
+
+
+_LANDSCAPE_RESOLUTIONS = {
+    #         XXS          XS            S              M              L
+    "1:1":  [(512, 512),  (768, 768),   (1024, 1024), (1280, 1280), (1536, 1536)],
+    "9:7":  [(576, 448),  (864, 672),   (1152, 896),  (1440, 1120), (1728, 1344)],
+    "4:3":  [(576, 432),  (864, 648),   (1152, 864),  (1472, 1104), (1728, 1296)],
+    "3:2":  [(624, 416),  (936, 624),   (1248, 832),  (1536, 1024), (1872, 1248)],
+    "16:9": [(640, 360),  (1024, 576),  (1280, 720),  (1536, 864),  (2048, 1152)],
+    "21:9": [(672, 288),  (1008, 432),  (1344, 576),  (1680, 720),  (2016, 864)],
+}
+_SIZE_INDEX = {"XXS (512)": 0, "XS (768)": 1, "S (1024)": 2, "M (1280)": 3, "L (1536)": 4}
+
+
+class EmptyLatent:
+    def __init__(self):
+        self.device = comfy.model_management.intermediate_device()
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "aspect_ratio": (list(_LANDSCAPE_RESOLUTIONS.keys()), {"default": "1:1", "tooltip": "Aspect ratio of the latent"}),
+                "orientation": (["landscape", "portrait"], {"default": "landscape", "tooltip": "Landscape keeps width ≥ height; portrait swaps them. Ignored for 1:1."}),
+                "size": (["XXS (512)", "XS (768)", "S (1024)", "M (1280)", "L (1536)"], {"default": "S (1024)", "tooltip": "Resolution tier based on 1:1 base size"}),
+                "batch_size": ("INT", {"default": 1, "min": 1, "max": 4096, "tooltip": "Number of latents in the batch"}),
+                "width_override": ("INT", {"default": 0, "min": 0, "max": MAX_RESOLUTION, "step": 8, "tooltip": "Override width in pixels; ignored when 0"}),
+                "height_override": ("INT", {"default": 0, "min": 0, "max": MAX_RESOLUTION, "step": 8, "tooltip": "Override height in pixels; ignored when 0"}),
+            }
+        }
+
+    RETURN_TYPES = ("LATENT", "INT", "INT")
+    RETURN_NAMES = ("latent", "width", "height")
+    OUTPUT_TOOLTIPS = ("Empty latent tensor", "Width in pixels", "Height in pixels")
+    FUNCTION = "execute"
+    CATEGORY = "ImageSaver/utils"
+    DESCRIPTION = "Generates an empty latent from aspect ratio, orientation, and size tier."
+
+    def execute(self, aspect_ratio: str, orientation: str, size: str, batch_size: int, width_override: int = 0, height_override: int = 0):
+        width, height = _LANDSCAPE_RESOLUTIONS[aspect_ratio][_SIZE_INDEX[size]]
+        if orientation == "portrait" and width != height:
+            width, height = height, width
+        width = width_override if width_override > 0 else width
+        height = height_override if height_override > 0 else height
+        latent = torch.zeros([batch_size, 4, height // 8, width // 8], device=self.device, dtype=comfy.model_management.intermediate_dtype())
+        return ({"samples": latent, "downscale_ratio_spacial": 8}, width, height)
 
