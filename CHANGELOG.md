@@ -1,3 +1,8 @@
+# v1.24.0
+
+- Add rng artist/tag picker.
+- Add EmptyLatent node.
+
 # v1.23.0
 
  - Introduce an optional Pipe architecture to streamline metadata management and reduce wire clutter in complex, multi-stage workflows. See examples in the examples directory.
