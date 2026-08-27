@@ -1,6 +1,6 @@
 # Examples
 
-This directory contains example workflows for the ComfyUI Image & Video Saver nodes.
+This directory contains example workflows for the ComfyUI Video Saver and inherited Image Saver nodes.
 
 ## [`example-workflow.json`](./example-workflow.json)
 

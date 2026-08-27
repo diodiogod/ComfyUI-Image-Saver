@@ -1,6 +1,6 @@
-# ComfyUI Image & Video Saver
+# ComfyUI Video Saver
 
-Save images and videos with generation metadata in ComfyUI.
+Save videos with generation metadata in ComfyUI, while retaining the complete inherited Image Saver toolset.
 
 This is a maintained fork of [alexopus/ComfyUI-Image-Saver](https://github.com/alexopus/ComfyUI-Image-Saver), extended with native ComfyUI and VideoHelperSuite video support. It remains a GitHub fork so upstream changes and attribution stay visible. Existing Image Saver node names are intentionally preserved for workflow compatibility.
 
@@ -32,7 +32,7 @@ This would have civitai autodetect all of the resources (assuming the model/lora
 ### Method 1: Manager (Recommended)
 Install this fork from its Git URL in *ComfyUI-Manager*:
 
-`https://github.com/diodiogod/ComfyUI-Image-and-Video-Saver`
+`https://github.com/diodiogod/ComfyUI-Video-Saver`
 
 Searching for “ComfyUI Image Saver” may install the upstream image-only project instead.
 
@@ -40,8 +40,8 @@ Searching for “ComfyUI Image Saver” may install the upstream image-only proj
 If you don't have *ComfyUI-Manager*, then:
 - Using CLI, go to the ComfyUI folder
 - `cd custom_nodes`
-- `git clone https://github.com/diodiogod/ComfyUI-Image-and-Video-Saver.git`
-- `cd ComfyUI-Image-and-Video-Saver`
+- `git clone https://github.com/diodiogod/ComfyUI-Video-Saver.git`
+- `cd ComfyUI-Video-Saver`
 - `pip install -r requirements.txt`
 - Start/restart ComfyUI
 

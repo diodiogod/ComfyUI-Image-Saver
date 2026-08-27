@@ -1,15 +1,15 @@
 [project]
-name = "comfyui-image-and-video-saver"
-description = "Save images and videos with Civitai-compatible generation metadata in ComfyUI."
+name = "comfyui-video-saver"
+description = "Save videos with Civitai-compatible generation metadata in ComfyUI, with the inherited Image Saver toolset included."
 version = "1.25.0"
 license = { file = "LICENSE" }
 dependencies = ["piexif"]
 
 [project.urls]
-Repository = "https://github.com/diodiogod/ComfyUI-Image-and-Video-Saver"
+Repository = "https://github.com/diodiogod/ComfyUI-Video-Saver"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
 PublisherId = "diodiogod"
-DisplayName = "ComfyUI Image & Video Saver"
+DisplayName = "ComfyUI Video Saver"
 Icon = ""
