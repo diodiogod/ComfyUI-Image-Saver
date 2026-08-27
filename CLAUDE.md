@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ComfyUI-Image-Saver is a ComfyUI custom node plugin that saves images with generation metadata compatible with Civitai. It supports PNG, JPEG, and WebP formats, storing model, LoRA, and embedding hashes for proper resource recognition.
+ComfyUI Image & Video Saver is a maintained fork of ComfyUI-Image-Saver. It saves images and videos with generation metadata compatible with Civitai, including model, LoRA, and embedding hashes for resource recognition. Existing Image Saver node identifiers remain unchanged for workflow compatibility.
 
 ## Development Commands
 

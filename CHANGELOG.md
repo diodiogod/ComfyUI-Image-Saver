@@ -1,6 +1,7 @@
-# Unreleased
+# v1.25.0
 
 - Add Civitai-compatible metadata saving for native ComfyUI VIDEO (including audio) and VideoHelperSuite outputs.
+- Rebrand the maintained fork as ComfyUI Image & Video Saver while preserving existing node identifiers for workflow compatibility.
 
 # v1.24.1
 

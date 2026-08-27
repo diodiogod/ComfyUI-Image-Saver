@@ -1,11 +1,6 @@
 name: Publish to Comfy registry
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      - "pyproject.toml"
 
 permissions:
   issues: write
@@ -14,7 +9,7 @@ jobs:
   publish-node:
     name: Publish Custom Node to registry
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'alexopus' }}
+    if: ${{ github.repository_owner == 'diodiogod' }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4

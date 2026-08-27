@@ -1,8 +1,12 @@
-[!] Forked from https://github.com/giriss/comfy-image-saver, which seems to be inactive since a while.
+# ComfyUI Image & Video Saver
 
-# Save image with generation metadata in ComfyUI
+Save images and videos with generation metadata in ComfyUI.
 
-Allows you to save images with their **generation metadata**. Includes the metadata compatible with *Civitai* geninfo auto-detection. Works with PNG, JPG and WEBP. For PNG stores both the full workflow in comfy format, plus a1111-style parameters. For JPEG/WEBP only the a1111-style parameters are stored. **Includes hashes of Models, LoRAs and embeddings for proper resource linking** on civitai.
+This is a maintained fork of [alexopus/ComfyUI-Image-Saver](https://github.com/alexopus/ComfyUI-Image-Saver), extended with native ComfyUI and VideoHelperSuite video support. It remains a GitHub fork so upstream changes and attribution stay visible. Existing Image Saver node names are intentionally preserved for workflow compatibility.
+
+The original project was itself forked from [giriss/comfy-image-saver](https://github.com/giriss/comfy-image-saver).
+
+For images, the nodes save **generation metadata** compatible with Civitai geninfo detection. PNG, JPG, and WebP are supported. PNG stores the full ComfyUI workflow plus A1111-style parameters; JPEG/WebP store the A1111-style parameters. Model, LoRA, and embedding hashes are included for resource linking on Civitai.
 
 You can find example workflows in the [`examples`](./examples) directory.
 <img width="1288" height="1039" alt="workflow" src="https://github.com/user-attachments/assets/dbbb9f67-afa3-48a2-8cd3-e4116393f8e0" />
@@ -26,14 +30,18 @@ This would have civitai autodetect all of the resources (assuming the model/lora
 ## How to install?
 
 ### Method 1: Manager (Recommended)
-If you have *ComfyUI-Manager*, you can simply search "**ComfyUI Image Saver**" and install these custom nodes.
+Install this fork from its Git URL in *ComfyUI-Manager*:
+
+`https://github.com/diodiogod/ComfyUI-Image-and-Video-Saver`
+
+Searching for “ComfyUI Image Saver” may install the upstream image-only project instead.
 
 ### Method 2: Easy
 If you don't have *ComfyUI-Manager*, then:
 - Using CLI, go to the ComfyUI folder
 - `cd custom_nodes`
-- `git clone git@github.com:alexopus/ComfyUI-Image-Saver.git`
-- `cd ComfyUI-Image-Saver`
+- `git clone https://github.com/diodiogod/ComfyUI-Image-and-Video-Saver.git`
+- `cd ComfyUI-Image-and-Video-Saver`
 - `pip install -r requirements.txt`
 - Start/restart ComfyUI
 
