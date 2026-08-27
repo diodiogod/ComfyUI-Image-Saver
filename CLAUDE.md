@@ -10,9 +10,10 @@ ComfyUI-Image-Saver is a ComfyUI custom node plugin that saves images with gener
 
 ### Testing
 ```bash
-cd saver
-python -m pytest
+cd saver && python -m pytest
+cd tests && python -m pytest
 ```
+See "Testing" below for what each suite covers.
 
 ### Installation for Development
 ```bash
@@ -119,12 +120,10 @@ ComfyUI-Image-Saver/
 
 ## Testing
 
-Tests are located in `saver/test_saver.py` and use pytest. The test configuration is in `saver/pytest.ini`.
+Tests are split into two independent suites, each with its own `pytest.ini`, because `saver/saver.py` has no ComfyUI dependency while `nodes.py`/`utils.py` do:
 
-Run tests with:
-```bash
-cd saver && python -m pytest
-```
+- `saver/test_saver.py` — image format/metadata writing (`save_image`), no ComfyUI dependency. Run with `cd saver && python -m pytest`.
+- `tests/test_paths.py` — output-path/filename containment (`resolve_within_output`, `ImageSaver.save_images`). `tests/conftest.py` stubs ComfyUI's runtime modules to import `nodes.py`/`utils.py` outside ComfyUI. Run with `cd tests && python -m pytest`.
 
 ## Important Notes
 

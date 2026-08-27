@@ -18,6 +18,23 @@ def sanitize_filename(filename: str) -> str:
     sanitized = sanitized.rstrip('. ')
     return sanitized
 
+def resolve_within_output(*parts: str) -> str:
+    """
+    Join `parts` onto ComfyUI's output directory and return the resolved path,
+    raising if the result would land outside that directory (e.g. via `..`,
+    an absolute/drive-qualified component, or a symlink that escapes it).
+    """
+    output_root = os.path.realpath(folder_paths.output_directory)
+    candidate = os.path.realpath(os.path.join(output_root, *parts))
+    try:
+        is_contained = os.path.commonpath([output_root, candidate]) == output_root
+    except ValueError:
+        # e.g. candidate resolved onto a different drive on Windows
+        is_contained = False
+    if not is_contained:
+        raise ValueError(f"Resolved path `{candidate}` is outside the output directory `{output_root}`")
+    return candidate
+
 def get_sha256(file_path: str) -> str:
     """
     Given the file path, finds a matching sha256 file, or creates one

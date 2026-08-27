@@ -14,7 +14,7 @@ import folder_paths
 from nodes import MAX_RESOLUTION
 
 from .saver.saver import save_image
-from .utils import sanitize_filename, get_sha256, full_checkpoint_path_for
+from .utils import sanitize_filename, resolve_within_output, get_sha256, full_checkpoint_path_for
 from .utils_civitai import get_civitai_sampler_name, get_civitai_metadata, MAX_HASH_LENGTH
 from .prompt_metadata_extractor import PromptMetadataExtractor
 
@@ -460,12 +460,11 @@ class ImageSaver:
     ) -> list[str]:
         filename_prefix = make_filename(filename_pattern, metadata.width, metadata.height, metadata.seed, metadata.modelname, counter, time_format, metadata.sampler_name, metadata.steps, metadata.cfg, metadata.scheduler_name, metadata.denoise, metadata.clip_skip, metadata.custom)
 
-        output_path = os.path.join(folder_paths.output_directory, path)
+        output_path = resolve_within_output(path)
 
-        if output_path.strip() != '':
-            if not os.path.exists(output_path.strip()):
-                print(f'The path `{output_path.strip()}` specified doesn\'t exist! Creating directory.')
-                os.makedirs(output_path, exist_ok=True)
+        if not os.path.exists(output_path):
+            print(f'The path `{output_path}` specified doesn\'t exist! Creating directory.')
+            os.makedirs(output_path, exist_ok=True)
 
         result_paths: list[str] = list()
         num_images = len(images)
@@ -477,12 +476,12 @@ class ImageSaver:
 
             current_filename_prefix = ImageSaver.format_batch_filename(filename_prefix, base_suffix, idx)
             final_filename = f"{current_filename_prefix}.{extension}"
-            filepath = os.path.join(output_path, final_filename)
+            filepath = resolve_within_output(path, final_filename)
 
             save_image(img, filepath, extension, quality_jpeg_or_webp, lossless_webp, optimize_png, metadata.a111_params, prompt, extra_pnginfo, embed_workflow)
 
             if save_workflow_as_json:
-                save_json(extra_pnginfo, os.path.join(output_path, current_filename_prefix))
+                save_json(extra_pnginfo, resolve_within_output(path, current_filename_prefix))
 
             result_paths.append(final_filename)
         return result_paths
