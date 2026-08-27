@@ -1,3 +1,7 @@
+# Unreleased
+
+- Add Civitai-compatible metadata saving for native ComfyUI VIDEO (including audio) and VideoHelperSuite outputs.
+
 # v1.24.1
 
 - Fix a path-traversal issue where `path`/`filename` could write image and workflow-JSON output outside ComfyUI's output directory.
