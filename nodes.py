@@ -14,6 +14,7 @@ import folder_paths
 from nodes import MAX_RESOLUTION
 
 from .saver.saver import save_image
+from .saver.video import build_video_metadata, embed_video_metadata, native_video_metadata, pack_vhs_filenames, unpack_vhs_filenames
 from .utils import sanitize_filename, get_sha256, full_checkpoint_path_for
 from .utils_civitai import get_civitai_sampler_name, get_civitai_metadata, MAX_HASH_LENGTH
 from .prompt_metadata_extractor import PromptMetadataExtractor
@@ -338,6 +339,239 @@ class ImageSaverSimple:
             result["ui"] = {"images": [{"filename": filename, "subfolder": subfolder if subfolder != '.' else '', "type": 'output'} for filename in filenames]}
 
         return result
+
+
+class ImageSaverVideoMetadata:
+    """Add metadata to existing VideoHelperSuite file outputs."""
+
+    @classmethod
+    def INPUT_TYPES(cls) -> dict[str, Any]:
+        return {
+            "required": {
+                "filenames": ("VHS_FILENAMES", {"tooltip": "VideoHelperSuite only: connect the VHS_FILENAMES output from Video Combine. This is not the native VIDEO type."}),
+                "filename_suffix": ("STRING", {"default": "_civitai", "multiline": False, "tooltip": "Suffix for the metadata-enriched MP4/WebM copy"}),
+                "overwrite_existing": ("BOOLEAN", {"default": False, "tooltip": "Replace the original video instead of creating a suffixed copy"}),
+                "embed_workflow": ("BOOLEAN", {"default": True, "tooltip": "Embed ComfyUI prompt/workflow metadata in addition to Civitai parameters"}),
+            },
+            "optional": {
+                "metadata": ("METADATA", {"default": None, "tooltip": "Image Saver Metadata output containing prompt, hashes, and Civitai resources"}),
+            },
+            "hidden": {
+                "prompt": "PROMPT",
+                "extra_pnginfo": "EXTRA_PNGINFO",
+            },
+        }
+
+    RETURN_TYPES = ("VHS_FILENAMES",)
+    RETURN_NAMES = ("Filenames",)
+    OUTPUT_TOOLTIPS = ("VideoHelperSuite filenames for the metadata-enriched MP4/WebM copies.",)
+    OUTPUT_NODE = True
+    FUNCTION = "save_video_metadata"
+    CATEGORY = "ImageSaver"
+    DESCRIPTION = "VideoHelperSuite postprocessor: add Civitai-compatible metadata to existing VHS MP4/WebM files. Use Image Saver Save Video for native ComfyUI VIDEO values."
+
+    def save_video_metadata(
+        self,
+        filenames: Any,
+        filename_suffix: str = "_civitai",
+        overwrite_existing: bool = False,
+        embed_workflow: bool = True,
+        metadata: Metadata | None = None,
+        prompt: dict[str, Any] | None = None,
+        extra_pnginfo: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        save_output, source_files = unpack_vhs_filenames(filenames)
+        if not source_files:
+            raise ValueError("Image Saver Video Metadata received no video files.")
+
+        tags = build_video_metadata(
+            metadata,
+            prompt if embed_workflow else None,
+            extra_pnginfo if embed_workflow else None,
+        )
+        if not tags:
+            raise ValueError("No metadata was available. Connect Image Saver Metadata or run the node in a ComfyUI workflow.")
+
+        output_files = [
+            embed_video_metadata(
+                source,
+                tags,
+                suffix=filename_suffix,
+                overwrite=overwrite_existing,
+            )
+            for source in source_files
+        ]
+
+        result: dict[str, Any] = {
+            "result": (pack_vhs_filenames(save_output, output_files),),
+        }
+
+        output_directory = Path(folder_paths.get_output_directory()).resolve()
+        previews = []
+        for output_file in output_files:
+            path = Path(output_file).resolve()
+            try:
+                subfolder = os.path.relpath(path.parent, output_directory)
+            except ValueError:
+                subfolder = ""
+            previews.append({
+                "filename": path.name,
+                "subfolder": "" if subfolder in {"", "."} else subfolder,
+                "type": "output" if save_output else "temp",
+                "format": f"video/{path.suffix.lstrip('.').lower()}",
+            })
+        # Match ComfyUI's native PreviewVideo payload so the frontend renders
+        # an inline video player on the node after execution.
+        result["ui"] = {"images": previews, "animated": (True,)}
+        return result
+
+
+class ImageSaverSaveVideo:
+    """Save native ComfyUI VIDEO values, including optional audio, with metadata."""
+
+    @classmethod
+    def INPUT_TYPES(cls) -> dict[str, Any]:
+        return {
+            "required": {
+                "video": ("VIDEO", {"tooltip": "Native ComfyUI VIDEO from Create Video or another native video node. It can contain image frames plus audio."}),
+                "filename_prefix": ("STRING", {"default": "video/%time_%basemodelname_%seed", "multiline": False, "tooltip": "Output prefix. Image Saver placeholders are supported: %date, %time, %model, %basemodelname, %width, %height, %seed, %counter, %sampler_name, %steps, %cfg, %scheduler, %denoise, %clip_skip."}),
+                "format": (["auto", "mp4"], {"default": "auto", "tooltip": "Container format. Native ComfyUI currently writes MP4."}),
+                "codec": (["auto", "h264"], {"default": "auto", "tooltip": "Video codec. Native component videos are encoded as H.264."}),
+                "crf": ("FLOAT", {"default": 23.0, "min": 0.0, "max": 51.0, "step": 1.0, "tooltip": "Quality for H.264 re-encoding when requested"}),
+                "embed_workflow": ("BOOLEAN", {"default": True, "tooltip": "Embed ComfyUI prompt/workflow metadata in addition to Civitai parameters"}),
+            },
+            "optional": {
+                "metadata": ("METADATA", {"default": None, "tooltip": "Image Saver Metadata output containing prompt, hashes, and Civitai resources"}),
+                "time_format": ("STRING", {"default": "%Y-%m-%d-%H%M%S", "multiline": False, "tooltip": "strftime format used by the %time and %date filename placeholders"}),
+            },
+            "hidden": {
+                "prompt": "PROMPT",
+                "extra_pnginfo": "EXTRA_PNGINFO",
+            },
+        }
+
+    RETURN_TYPES = ("VIDEO",)
+    RETURN_NAMES = ("video",)
+    OUTPUT_TOOLTIPS = ("The native VIDEO value, forwarded for downstream nodes after saving.",)
+    OUTPUT_NODE = True
+    FUNCTION = "save_video"
+    CATEGORY = "ImageSaver"
+    DESCRIPTION = "Native ComfyUI VIDEO saver: preserves image frames and optional audio while writing Civitai-compatible prompt, hashes, resources, and workflow metadata."
+
+    def save_video(
+        self,
+        video: Any,
+        filename_prefix: str = "video/ComfyUI",
+        format: str = "auto",
+        codec: str = "auto",
+        crf: float = 23.0,
+        embed_workflow: bool = True,
+        metadata: Metadata | None = None,
+        time_format: str = "%Y-%m-%d-%H%M%S",
+        prompt: dict[str, Any] | None = None,
+        extra_pnginfo: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        try:
+            from comfy_api.latest import Types
+        except ImportError as error:
+            raise RuntimeError("Image Saver Save Video requires a ComfyUI version with the native VIDEO type.") from error
+
+        if video is None or not hasattr(video, "save_to"):
+            raise TypeError("Image Saver Save Video expected a native ComfyUI VIDEO value.")
+
+        tags = build_video_metadata(
+            metadata,
+            prompt if embed_workflow else None,
+            extra_pnginfo if embed_workflow else None,
+        )
+        if not tags:
+            raise ValueError("No metadata was available. Connect Image Saver Metadata or run the node in a ComfyUI workflow.")
+
+        width, height = video.get_dimensions()
+        modelname = getattr(metadata, "modelname", "") if metadata is not None else ""
+        seed = getattr(metadata, "seed", 0) if metadata is not None else 0
+        steps = getattr(metadata, "steps", 20) if metadata is not None else 20
+        cfg = getattr(metadata, "cfg", 7.0) if metadata is not None else 7.0
+        sampler_name = getattr(metadata, "sampler_name", "") if metadata is not None else ""
+        scheduler_name = getattr(metadata, "scheduler_name", "") if metadata is not None else ""
+        denoise = getattr(metadata, "denoise", 1.0) if metadata is not None else 1.0
+        clip_skip = getattr(metadata, "clip_skip", 0) if metadata is not None else 0
+        filename_prefix = re.sub(r"%scheduler(?!_name)", "%scheduler_name", filename_prefix)
+        prefix_without_counter = filename_prefix.replace("%counter", "")
+        probe_prefix = make_pathname(
+            prefix_without_counter,
+            width,
+            height,
+            seed,
+            modelname,
+            0,
+            time_format,
+            sampler_name,
+            steps,
+            cfg,
+            scheduler_name,
+            denoise,
+            clip_skip,
+            "",
+        )
+        _, _, probe_counter, _, _ = folder_paths.get_save_image_path(
+            probe_prefix,
+            folder_paths.get_output_directory(),
+            width,
+            height,
+        )
+        resolved_prefix = make_pathname(
+            filename_prefix,
+            width,
+            height,
+            seed,
+            modelname,
+            probe_counter,
+            time_format,
+            sampler_name,
+            steps,
+            cfg,
+            scheduler_name,
+            denoise,
+            clip_skip,
+            "",
+        )
+        full_output_folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
+            resolved_prefix,
+            folder_paths.get_output_directory(),
+            width,
+            height,
+        )
+        extension = Types.VideoContainer.get_extension(format)
+        output_file = f"{filename}_{counter:05}_.{extension}"
+        output_path = os.path.join(full_output_folder, output_file)
+        video.save_to(
+            output_path,
+            format=Types.VideoContainer(format),
+            codec=Types.VideoCodec(codec),
+            metadata=native_video_metadata(tags),
+            crf=crf,
+        )
+        # Native VIDEO correctly combines image frames and optional audio, but
+        # its component encoder JSON-serializes string values. Remux the
+        # finished file losslessly so the A1111 ``parameters`` tag and the
+        # structured tags have the exact text expected by Civitai readers.
+        embed_video_metadata(output_path, tags, overwrite=True)
+
+        return {
+            "result": (video,),
+            "ui": {
+                # This is the legacy-node equivalent of
+                # ui.PreviewVideo([ui.SavedResult(...)]) used by ComfyUI's
+                # native Save Video node.
+                "images": [{
+                    "filename": output_file,
+                    "subfolder": subfolder,
+                    "type": "output",
+                }],
+                "animated": (True,),
+            },
+        }
 
 class ImageSaver:
     @classmethod

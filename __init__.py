@@ -1,6 +1,6 @@
 from typing import Any
 
-from .nodes import ImageSaver, ImageSaverSimple, ImageSaverMetadata
+from .nodes import ImageSaver, ImageSaverSimple, ImageSaverMetadata, ImageSaverVideoMetadata, ImageSaverSaveVideo
 from .nodes_pipe import MakeImageSaverPipe, EditImageSaverPipe, ReadImageSaverPipe, ImageSaverFromPipe, MakeImageSaverSimpleConfig, MakeImageSaverMetadataConfig
 from .nodes_literals import SeedGenerator, StringLiteral, SizeLiteral, IntLiteral, FloatLiteral, CfgLiteral, ConditioningConcatOptional, RandomShapeGenerator, EmptyLatent
 from .nodes_loaders import CheckpointLoaderWithName, UNETLoaderWithName
@@ -20,6 +20,8 @@ NODE_CLASS_MAPPINGS: dict[str, Any] = {
     "Edit Image Saver Pipe": EditImageSaverPipe,
     "Read Image Saver Pipe": ReadImageSaverPipe,
     "Image Saver (From Pipe)": ImageSaverFromPipe,
+    "Image Saver Video Metadata": ImageSaverVideoMetadata,
+    "Image Saver Save Video": ImageSaverSaveVideo,
     "Sampler Selector (Image Saver)": SamplerSelector,
     "Scheduler Selector (Image Saver)": SchedulerSelector,
     "Scheduler Selector (inspire) (Image Saver)": SchedulerSelectorInspire,
@@ -44,4 +46,9 @@ NODE_CLASS_MAPPINGS: dict[str, Any] = {
 
 WEB_DIRECTORY = "js"
 
-__all__ = ['NODE_CLASS_MAPPINGS', 'WEB_DIRECTORY']
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "Image Saver Save Video": "Image Saver — Save Native Video (VIDEO + Audio)",
+    "Image Saver Video Metadata": "Image Saver — Add Metadata to VHS Video",
+}
+
+__all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS', 'WEB_DIRECTORY']

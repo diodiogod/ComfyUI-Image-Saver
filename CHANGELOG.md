@@ -1,3 +1,7 @@
+# Unreleased
+
+- Add Civitai-compatible metadata saving for native ComfyUI VIDEO (including audio) and VideoHelperSuite outputs.
+
 # v1.24.0
 
 - Add rng artist/tag picker.

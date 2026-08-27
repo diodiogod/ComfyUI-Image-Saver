@@ -10,6 +10,16 @@ You can find example workflows in the [`examples`](./examples) directory.
 You can also add LoRAs to the prompt in \<lora:name:weight\> format, which would be translated into hashes and stored together with the metadata. For this it is recommended to use `ImpactWildcardEncode` from the fantastic [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack). It will allow you to convert the LoRAs directly to proper conditioning without having to worry about avoiding/concatenating lora strings, which have no effect in standard conditioning nodes. Here is an example:
 ![workflow](https://github.com/user-attachments/assets/61440fac-f1d5-414b-ae69-dbdda9d6d442)
 
+## Video metadata
+
+The video nodes preserve the same positive/negative prompts, settings, model and LoRA hashes, and Civitai resource list used by the image saver. They also write the ComfyUI prompt/workflow when enabled.
+
+For native ComfyUI video workflows, use `Image Saver — Save Native Video (VIDEO + Audio)`. Connect the native `VIDEO` output from `Create Video` or another native video node to `video`, and connect `Image Saver Metadata` to `metadata`. This is the actual saver: it encodes the native frames plus optional audio, then adds metadata. Its filename prefix supports Image Saver placeholders such as `%time`, `%basemodelname`, and `%seed`.
+
+For VideoHelperSuite, keep `save_metadata` enabled on `Video Combine`, then connect its `VHS_FILENAMES` output to `Image Saver — Add Metadata to VHS Video` and connect `Image Saver Metadata` to `metadata`. This is not another video encoder: it post-processes files already written by VHS and creates a suffixed MP4/WebM copy by default, preserving the original and all existing video/audio streams.
+
+Both paths write an A1111-compatible `parameters` tag plus structured `prompt`, workflow/extra-info, `civitaiResources`, and `extraMetadata` tags. These are the tags the companion [Civitai Video Metadata Assistant](https://github.com/diodiogod/Civitai-Video-Metadata-Assistant) can read before upload while Civitai's native video-metadata support is still pending.
+
 This would have civitai autodetect all of the resources (assuming the model/lora/embedding hashes match):
 ![image](https://github.com/alexopus/ComfyUI-Image-Saver/assets/25933468/f0642389-4f34-4a64-89a6-5cf9c33d5ed1)
 
