@@ -1,3 +1,7 @@
+# v1.24.1
+
+- Fix a path-traversal issue where `path`/`filename` could write image and workflow-JSON output outside ComfyUI's output directory.
+
 # v1.24.0
 
 - Add rng artist/tag picker.
