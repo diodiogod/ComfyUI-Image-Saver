@@ -14,7 +14,14 @@ import folder_paths
 from nodes import MAX_RESOLUTION
 
 from .saver.saver import save_image
-from .saver.video import build_video_metadata, embed_video_metadata, native_video_metadata, pack_vhs_filenames, unpack_vhs_filenames
+from .saver.video import (
+    build_video_metadata,
+    embed_video_metadata,
+    native_video_metadata,
+    pack_vhs_filenames,
+    select_vhs_video_file,
+    unpack_vhs_filenames,
+)
 from .utils import sanitize_filename, get_sha256, full_checkpoint_path_for
 from .utils_civitai import get_civitai_sampler_name, get_civitai_metadata, MAX_HASH_LENGTH
 from .prompt_metadata_extractor import PromptMetadataExtractor
@@ -383,6 +390,7 @@ class ImageSaverVideoMetadata:
         save_output, source_files = unpack_vhs_filenames(filenames)
         if not source_files:
             raise ValueError("Image Saver Video Metadata received no video files.")
+        source_file = select_vhs_video_file(source_files)
 
         tags = build_video_metadata(
             metadata,
@@ -394,12 +402,11 @@ class ImageSaverVideoMetadata:
 
         output_files = [
             embed_video_metadata(
-                source,
+                source_file,
                 tags,
                 suffix=filename_suffix,
                 overwrite=overwrite_existing,
             )
-            for source in source_files
         ]
 
         result: dict[str, Any] = {

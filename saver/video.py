@@ -252,5 +252,28 @@ def unpack_vhs_filenames(value: Any) -> tuple[bool, list[str]]:
     raise TypeError("Expected the VHS_FILENAMES value returned by VideoHelperSuite.")
 
 
+def select_vhs_video_file(files: Iterable[str]) -> str:
+    """Return VHS's most complete supported video output.
+
+    VHS places its metadata PNG first, then the encoded video, and finally an
+    audio-muxed video when audio is connected. Its contract defines the last
+    entry as the most complete output, so search backward past image artifacts.
+    """
+    paths = [os.fspath(item) for item in files]
+    for path in reversed(paths):
+        if Path(path).suffix.lower() in {".mp4", ".webm"}:
+            return path
+
+    produced = ", ".join(
+        sorted({Path(path).suffix.lower() or "(no extension)" for path in paths})
+    )
+    detail = f" VHS produced: {produced}." if produced else ""
+    raise ValueError(
+        "Image Saver Video Metadata found no MP4 or WebM in the VHS output. "
+        "Choose a video/* MP4 or WebM format in Video Combine; image/gif and "
+        f"image/webp cannot carry this metadata.{detail}"
+    )
+
+
 def pack_vhs_filenames(save_output: bool, files: Iterable[str]) -> tuple[bool, list[str]]:
     return bool(save_output), list(files)
