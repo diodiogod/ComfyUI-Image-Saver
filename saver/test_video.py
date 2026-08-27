@@ -10,6 +10,7 @@ from .video import (
     embed_video_metadata,
     escape_ffmetadata,
     native_video_metadata,
+    select_vhs_video_file,
     unpack_vhs_filenames,
 )
 
@@ -42,6 +43,25 @@ def test_escape_ffmetadata():
 def test_unpack_vhs_filenames():
     assert unpack_vhs_filenames((False, ["one.mp4", "two.webm"])) == (False, ["one.mp4", "two.webm"])
     assert unpack_vhs_filenames(["one.mp4"]) == (True, ["one.mp4"])
+
+
+def test_select_vhs_video_file_ignores_metadata_png():
+    files = ["AnimateDiff_00001.png", "AnimateDiff_00001.mp4"]
+    assert select_vhs_video_file(files) == "AnimateDiff_00001.mp4"
+
+
+def test_select_vhs_video_file_prefers_audio_muxed_output():
+    files = [
+        "AnimateDiff_00001.png",
+        "AnimateDiff_00001.mp4",
+        "AnimateDiff_00001-audio.mp4",
+    ]
+    assert select_vhs_video_file(files) == "AnimateDiff_00001-audio.mp4"
+
+
+def test_select_vhs_video_file_rejects_image_formats_clearly():
+    with pytest.raises(ValueError, match="no MP4 or WebM"):
+        select_vhs_video_file(["AnimateDiff_00001.png", "AnimateDiff_00001.gif"])
 
 
 def test_native_video_metadata_avoids_double_serializing_parameters():
