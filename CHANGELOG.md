@@ -1,6 +1,8 @@
 # v1.25.0
 
 - Add Civitai-compatible metadata saving for native ComfyUI VIDEO (including audio) and VideoHelperSuite outputs.
+- Preserve the raw scheduler as `Schedule type` in generation parameters.
+- Add an example workflow covering both native VIDEO and VideoHelperSuite routes.
 - Rebrand the maintained fork as ComfyUI Video Saver while preserving the inherited image features and existing node identifiers for workflow compatibility.
 
 # v1.24.1

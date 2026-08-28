@@ -233,7 +233,7 @@ class ImageSaverMetadata:
 
         a111_params = (
             f"{positive_a111_params}{negative_a111_params}\n"
-            f"Steps: {steps}, Sampler: {civitai_sampler_name}, CFG scale: {cfg}, Seed: {seed_value}, "
+            f"Steps: {steps}, Sampler: {civitai_sampler_name}, Schedule type: {scheduler_name}, CFG scale: {cfg}, Seed: {seed_value}, "
             f"Size: {width}x{height}{clip_skip_str}{custom_str}{model_hash_str}, Model: {basemodelname}{hashes_str}, Version: ComfyUI"
         )
 

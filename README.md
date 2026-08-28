@@ -8,7 +8,7 @@ The original project was itself forked from [giriss/comfy-image-saver](https://g
 
 For images, the nodes save **generation metadata** compatible with Civitai geninfo detection. PNG, JPG, and WebP are supported. PNG stores the full ComfyUI workflow plus A1111-style parameters; JPEG/WebP store the A1111-style parameters. Model, LoRA, and embedding hashes are included for resource linking on Civitai.
 
-You can find example workflows in the [`examples`](./examples) directory.
+You can find image examples in [`examples`](./examples) and the native/VHS video template in [`example_workflows`](./example_workflows).
 <img width="1288" height="1039" alt="workflow" src="https://github.com/user-attachments/assets/dbbb9f67-afa3-48a2-8cd3-e4116393f8e0" />
 
 You can also add LoRAs to the prompt in \<lora:name:weight\> format, which would be translated into hashes and stored together with the metadata. For this it is recommended to use `ImpactWildcardEncode` from the fantastic [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack). It will allow you to convert the LoRAs directly to proper conditioning without having to worry about avoiding/concatenating lora strings, which have no effect in standard conditioning nodes. Here is an example:
